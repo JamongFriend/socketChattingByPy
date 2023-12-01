@@ -5,6 +5,8 @@ from pathlib import Path
 from os.path import exists
 import sys
 
+from service import User
+
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 5000
 BUF_SIZE = 1024
@@ -16,6 +18,19 @@ print(f"[*] Connecting to {SERVER_HOST}:{SERVER_PORT}...")
 # 서버 연결
 s.connect((SERVER_HOST, SERVER_PORT))
 print("[+] Connected.")
+
+def main():
+    print("1. 회원가입")
+    print("2. 로그인")
+    print("3. 종료")
+    userInput = input()
+    if userInput == 1:
+        User.register()
+        main()
+    elif userInput == 2:
+        User.login()
+    elif userInput == 3:
+        exit()
 
 def listenMessages():
     while True:
@@ -48,11 +63,14 @@ def listenMessages():
             print(f"Error:{e}")
 
 
+main()
+
 t = Thread(target=listenMessages)
 t.daemon = True
 t.start()
 
-myID = input("Enter your ID: ")
+
+myID = User.loginedAccount
 toMsg = "ID"+SEP+myID+SEP
 s.send(toMsg.encode())
 

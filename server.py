@@ -8,6 +8,8 @@ from threading import Thread, Event
 import os
 import sys
 
+from service import User
+
 event = Event()  # 키보드 입력받으면 키보드 종료시키기 위한 이벤트 
 
 HOST = ''
@@ -17,99 +19,83 @@ ADDR = (HOST, PORT)
 
 # 연결된 client의 소켓 집합 set of connected client sockets
 clientSockets = {}
-       
-def transferFile(cs, m):
-    global clientSockets
-    tokens = m.split(':')
-    fromID = tokens[1]
-    toID = tokens[2]
-    filename = tokens[3]
-    filesize = tokens[4]
-    received = 0
-    f_size = int(filesize)
 
-    toSocket = clientSockets.get(toID)
-    toSocket.send(m.encode())      
-    try:            
-        while received < f_size: #데이터가 있을 때까지
-            data = cs.recv(1024)                
-            toSocket.send(data)                    
-            received += len(data)
-            print("FILE recieved", received)
-    
-        print('파일 전송:', filename, received, 'bytes')
-    except Exception as ex:
-            print(ex)
-    
-def msg_proc(cs, m):
-    global clientSockets
-    tokens = m.split(':')
-    code = tokens[0]
-    try:
-        if (code.upper() == "ID"):
-            print('reg id: ',m)
-            clientSockets[tokens[1]] = cs
-            cs.send("Success:Reg_ID".encode())
-            return True
-        elif (code.upper()  == "TO"):        
-            fromID = tokens[1]
-            toID = tokens[2]
-            toMsg = tokens[3]
-            print(f"1to1: From {fromID} To {toID} Message {toMsg}") 
-            toSocket = clientSockets.get(toID)
-            toSocket.send(m.encode())
-            cs.send("Success:1to1".encode())
-            return True
-        elif (code.upper()  == "QUIT"):
-            fromID = tokens[1]
-            clientSockets.pop(fromID)
-            cs.close()
-            print("Disconnected:", fromID)
-            return False
-    except Exception as e:
-        print(f"Error:{e}")
-         
-def client_com(cs):
-    # 클라이언트로부터 id 메시지를 받음
+class Server:
+    def __init__(self):
+        self.user = User()
 
-    while True:
-        if event.is_set(): # event 발생하면 스레드 종료
-            return
-        try:  # 아래 문장 무조건 실행
-            msg = cs.recv(BUFSIZE).decode()
-            #print('recieve data : ',msg)
-        except Exception as e:  # 위 문장 에러 처리: client no longer connected
+    def msg_proc(self, cs, m):
+        global clientSockets
+        tokens = m.split(':')
+        code = tokens[0]
+        try:
+            if (code.upper() == "ID"):
+                print('reg id: ',m)
+                clientSockets[tokens[1]] = cs
+                cs.send("Success:Reg_ID".encode())
+                return True
+            elif (code.upper() == "reg"):
+                clientSockets[tokens[1]] = cs
+                cs.send("Success Register".encode())
+            elif (code.upper()  == "TO"):        
+                fromID = tokens[1]
+                toID = tokens[2]
+                toMsg = tokens[3]
+                print(f"1to1: From {fromID} To {toID} Message {toMsg}") 
+                toSocket = clientSockets.get(toID)
+                toSocket.send(m.encode())
+                cs.send("Success:1to1".encode())
+                return True
+            elif (code.upper()  == "QUIT"):
+                fromID = tokens[1]
+                clientSockets.pop(fromID)
+                cs.close()
+                print("Disconnected:", fromID)
+                return False
+        except Exception as e:
             print(f"Error:{e}")
-            clientSockets.pop(cs)
-        else:  # recv 성공하면 메시지 처리
-            if ( msg_proc(cs, msg) == False):
-                break  # 클라이언트가 종료하면 루프 탈출 후 스레드 종료
-        
+            
+    def client_com(self, cs):
+        # 클라이언트로부터 id 메시지를 받음
 
-def client_acpt():
-    # 소켓 생성
-    global serverSocket 
-    serverSocket = socket(AF_INET, SOCK_STREAM) 
+        while True:
+            if event.is_set(): # event 발생하면 스레드 종료
+                return
+            try:  # 아래 문장 무조건 실행
+                msg = cs.recv(BUFSIZE).decode()
+                #print('recieve data : ',msg)
+            except Exception as e:  # 위 문장 에러 처리: client no longer connected
+                print(f"Error:{e}")
+                clientSockets.pop(cs)
+            else:  # recv 성공하면 메시지 처리
+                if ( self.msg_proc(cs, msg) == False):
+                    break  # 클라이언트가 종료하면 루프 탈출 후 스레드 종료
 
-    # 소켓 주소 정보 할당
-    serverSocket.bind(ADDR)
+    def client_acpt(self):
+        # 소켓 생성
+        global serverSocket 
+        serverSocket = socket(AF_INET, SOCK_STREAM) 
 
-    # 연결 수신 대기 상태
-    serverSocket.listen(10)
-    print('대기')
+        # 소켓 주소 정보 할당
+        serverSocket.bind(ADDR)
 
-    # 연결 수락
-    while True:
-        if event.is_set(): # event 발생하면 스레드 종료
-            return
-        clientSocket, addr_info = serverSocket.accept()
-        print('연결 수락: client 정보 ', addr_info)
-        tc = Thread(target = client_com, args=(clientSocket,))
-        tc.daemon = True
-        tc.start()
-        
+        # 연결 수신 대기 상태
+        serverSocket.listen(10)
+        print('대기')
 
-ta = Thread(target=client_acpt)
+        # 연결 수락
+        while True:
+            if event.is_set(): # event 발생하면 스레드 종료
+                return
+            clientSocket, addr_info = serverSocket.accept()
+            print('연결 수락: client 정보 ', addr_info)
+            tc = Thread(target = self.client_com, args=(clientSocket,))
+            tc.daemon = True
+            tc.start()
+
+ser = Server()
+
+ta = Thread(target=ser.client_acpt)
 ta.daemon = True
 ta.start()
 

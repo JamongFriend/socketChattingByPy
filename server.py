@@ -60,25 +60,12 @@ def msg_proc(cs, m):
             toSocket.send(m.encode())
             cs.send("Success:1to1".encode())
             return True
-        elif (code.upper()  == "BR"):
-            print('broadcast data: ', m)
-            for socket in clientSockets.values(): # broadcast
-                if (cs == socket):
-                    cs.send("Success:BR".encode())
-                else:
-                    socket.send(m.encode())
-            return True
         elif (code.upper()  == "QUIT"):
             fromID = tokens[1]
             clientSockets.pop(fromID)
             cs.close()
             print("Disconnected:", fromID)
             return False
-        elif (code.upper()  == "FILE"):
-            
-            transferFile(cs, m)
-            #recvFile(cs, filename, filesize)
-            
     except Exception as e:
         print(f"Error:{e}")
          

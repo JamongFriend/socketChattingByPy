@@ -62,13 +62,11 @@ def listenMessages():
         except Exception as e:
             print(f"Error:{e}")
 
-
 main()
 
 t = Thread(target=listenMessages)
 t.daemon = True
 t.start()
-
 
 myID = User.loginedAccount
 toMsg = "ID"+SEP+myID+SEP
@@ -83,33 +81,9 @@ while True:
         toMsg = "Quit"+SEP+myID+SEP
         s.send(toMsg.encode())
         break
-    elif code.upper()  == "BR" :
-        toMsg = code + SEP + myID + SEP + tokens[1] + SEP
-        s.send(toMsg.encode())
     elif code.upper() == "TO":
         toMsg = code + SEP + myID + SEP + tokens[1] + SEP + tokens[2] + SEP
         s.send(toMsg.encode())
-    elif code.upper() == "FILE":
-        toID = tokens[1]
-        filename = tokens[2]
-        if not exists(filename):
-            print("no file")
-        else:
-            file_size = Path(filename).stat().st_size 
-            toMsg = code + SEP + myID + SEP + toID +SEP+ filename + SEP + str(file_size) + SEP
-            print(toMsg)
-            
-            s.send(toMsg.encode())
-            sent = 0
-            with open(filename, 'rb') as f:
-                try:
-                    data = f.read(1024) #1024바이트 읽는다
-                    while data: #데이터가 없을 때까지
-                        sent += s.send(data) #1024바이트 보내고 크기 저장
-                        data = f.read(1024) #1024바이트 읽음
-                    print("Complete File tx ")
-                except Exception as ex:
-                    print(ex)
     toMsg = '' 
 
 

@@ -35,7 +35,10 @@ class Server:
                 cs.send("Success:Reg_ID".encode())
                 return True
             elif (code.upper() == "reg"):
-                clientSockets[tokens[1]] = cs
+                id = tokens[1]
+                pw = tokens[2]
+                username = tokens[3]
+                self.user.register(id, pw, username)
                 cs.send("Success Register".encode())
             elif (code.upper()  == "TO"):        
                 fromID = tokens[1]

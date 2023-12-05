@@ -7,15 +7,12 @@ class User:
     def __init__(self):
         self.DBfunc = DBfunc()
 
-    def register(self):
-        id = input('ID 입력:')
-        pw = input('PW 입력:')
-        username = input('이름 입력: ')
+    def register(self, id, pw, usename):
         self.DBfunc.insert(Member(id = id, pw=pw, username=username))
 
-    def login(self):
-        inputID = input('ID 입력:')
-        inputPW = input('PW 입력:')
+    def login(self, id, pw):
+        inputID = id
+        inputPW = pw
         a = self.DBfunc.select(inputID)
         
         if a==None and inputPW != a.pw:

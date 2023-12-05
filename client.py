@@ -29,10 +29,15 @@ class Menu:
         print("3. 종료")
         msg = input(">>>")
         if msg == '1':
-            toMsg = "reg"+SEP
+            id = input('ID 입력:')
+            pw = input('PW 입력:')
+            username = input('이름 입력: ')
+            toMsg = "reg"+SEP+id+SEP+pw+SEP+username
             s.send(toMsg.encode())
         elif msg == '2':
-            self.user.login()
+            inputID = input('ID 입력:')
+            inputPW = input('PW 입력:')
+            self.user.login(inputID, inputPW)
         elif msg == '3':
             quit()
 

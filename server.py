@@ -8,7 +8,7 @@ from threading import Thread, Event
 import os
 import sys
 
-from service import User
+from service import Service
 
 event = Event()  # 키보드 입력받으면 키보드 종료시키기 위한 이벤트 
 
@@ -22,24 +22,27 @@ clientSockets = {}
 
 class Server:
     def __init__(self):
-        self.user = User()
+        self.service = Service()
 
     def msg_proc(self, cs, m):
         global clientSockets
+        print(m)
         tokens = m.split(':')
         code = tokens[0]
         try:
-            if (code.upper() == "ID"):
-                print('reg id: ',m)
-                clientSockets[tokens[1]] = cs
-                cs.send("Success:Reg_ID".encode())
-                return True
-            elif (code.upper() == "reg"):
+            if (code.upper() == "REG"):
                 id = tokens[1]
                 pw = tokens[2]
                 username = tokens[3]
-                self.user.register(id, pw, username)
+                self.service.register(id, pw, username)
                 cs.send("Success Register".encode())
+                return True
+            elif (code.upper() == "LOG"):
+                id = tokens[1]
+                pw = tokens[2]
+                self.service.login(id, pw)
+                cs.send("Success Login".encode())
+                return True
             elif (code.upper()  == "TO"):        
                 fromID = tokens[1]
                 toID = tokens[2]
@@ -51,8 +54,7 @@ class Server:
                 return True
             elif (code.upper()  == "QUIT"):
                 fromID = tokens[1]
-                clientSockets.pop(fromID)
-                cs.close()
+                self.service.logout()
                 print("Disconnected:", fromID)
                 return False
         except Exception as e:

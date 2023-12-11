@@ -16,7 +16,7 @@ class DBfunc:
     def insert(self, a:Member):
         self.connect() #db연결
         cur = self.conn.cursor() #커서 객체 생성
-        sql = 'insert into networkaccount (id, pw, username) values(%s, %s, %s)' #sql문
+        sql = 'insert into account (id, pw, username) values(%s, %s, %s)' #sql문
         d =  (a.id, a.pw, a.username) # %s의 각 자리에 들어갈 값을 튜플로 정의
         cur.execute(sql, d) #sql문 실행 
         self.conn.commit() # mysql 커밋
@@ -26,7 +26,7 @@ class DBfunc:
         try:
             self.connect()  #db연결
             cur = self.conn.cursor() #커서 객체 생성
-            sql = 'select from networkaccount where id=%s' #sql문
+            sql = 'select * from account where id=%s' #sql문
             dbid =  (id,) # id값
             cur.execute(sql, dbid) #sql문 실행 
             row = cur.fetchone()  # 현제 커서 위치의 한줄 추출
@@ -36,4 +36,3 @@ class DBfunc:
             print(e)
         finally:
             self.closeconn()
-

@@ -1,3 +1,5 @@
+#데이터 베이스 클래스
+
 import pymysql
 from member import Member
 
